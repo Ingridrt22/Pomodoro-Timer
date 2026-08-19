@@ -1,0 +1,73 @@
+#menu {
+    height: 50px;
+    background-color: rgba(245, 112, 209, 0.75);
+    border-radius: 17px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 45px;
+}
+
+#menu button {
+    height: 40px;
+    width: 40px;
+    border-radius: 16px;
+    border-style: solid;
+    background-color: rgba(239, 222, 101, 0.75);
+}
+
+#topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgb(239, 222, 101);
+}
+
+#app {
+    background-color: rgba(245, 112, 209, 0.75);
+    padding: 10px;
+    border-radius: 20px;
+}
+
+#app button {
+    display: flexbox;
+    gap: 10px;
+    border-radius: 10px;
+    background-color: rgba(239, 222, 101, 0.75);
+}
+
+#clock {
+    text-align: center;
+    background-color: rgba(239, 225, 101, 0.75);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+#options {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    background-color: rgba(255, 255, 0, 0.485);
+    border-radius: 15px;
+    height: 35px;
+}
+
+#options button {
+    border: none;
+}
+
+#options button:active {
+    background-color: rgba(255, 129, 221, 0.779);
+    padding: 5px;
+    border: none;
+    border-radius: 17px;
+}
+
+body {
+    background-color: rgb(255, 214, 244);
+}
+
+
+
