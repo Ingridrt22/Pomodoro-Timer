@@ -28,6 +28,7 @@
     background-color: rgba(245, 112, 209, 0.75);
     padding: 10px;
     border-radius: 20px;
+    padding-top: 0px;
 }
 
 #app button {
@@ -44,6 +45,15 @@
     border-radius: 10px;
 }
 
+#start {
+    height: 50px;
+    width: 120px;
+}
+
+.ocult {
+    display: none;
+}
+
 #options {
     display: flex;
     justify-content: center;
@@ -55,6 +65,7 @@
 }
 
 #options button {
+    background-color: transparent;
     border: none;
 }
 
@@ -65,9 +76,12 @@
     border-radius: 17px;
 }
 
+#time {
+    font-size: 50px;
+    font-weight: 900;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 body {
     background-color: rgb(255, 214, 244);
 }
-
-
-
