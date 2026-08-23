@@ -10,6 +10,7 @@ const optionButtons = document.querySelectorAll('#options button');
 
 // Botons de #controls: night-mode, chart, settings (en aquest ordre)
 const controlButtons = document.querySelectorAll('#controls button');
+const nightModeBtn = document.getElementById('nightModeBtn');
 const settingsBtn = controlButtons[2];
 
 // Modal de Settings
@@ -31,6 +32,43 @@ let remainingSeconds = DURATIONS[currentModeIndex];
 let timerInterval = null;
 let isRunning = false;
 let pomodorosCompleted = 0; // cada 4 pomodoros toca Long Break
+
+// --- LocalStorage: recordar preferències entre sessions ---
+const STORAGE_KEY = 'pomodoroSettings';
+
+function saveStateToStorage() {
+    const state = {
+        DURATIONS,
+        LONG_BREAK_INTERVAL,
+        pomodorosCompleted,
+        darkMode: document.body.classList.contains('dark-mode'),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadStateFromStorage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    try {
+        const state = JSON.parse(saved);
+        if (Array.isArray(state.DURATIONS) && state.DURATIONS.length === 3) {
+            DURATIONS = state.DURATIONS;
+        }
+        if (typeof state.LONG_BREAK_INTERVAL === 'number') {
+            LONG_BREAK_INTERVAL = state.LONG_BREAK_INTERVAL;
+        }
+        if (typeof state.pomodorosCompleted === 'number') {
+            pomodorosCompleted = state.pomodorosCompleted;
+        }
+        if (state.darkMode) {
+            document.body.classList.add('dark-mode');
+            nightModeBtn.classList.add('active');
+        }
+    } catch (err) {
+        console.error('No s\'ha pogut llegir el localStorage:', err);
+    }
+}
 
 // --- Funcions auxiliars ---
 function formatTime(totalSeconds) {
@@ -59,6 +97,7 @@ function handleSessionEnd() {
     if (currentModeIndex === 0) {
         // Acaba de passar un Pomodoro
         pomodorosCompleted++;
+        saveStateToStorage();
         const nextMode = (pomodorosCompleted % LONG_BREAK_INTERVAL === 0) ? 2 : 1;
         switchMode(nextMode);
     } else {
@@ -119,12 +158,20 @@ function saveSettings() {
 
     DURATIONS = [pomodoroMin * 60, shortMin * 60, longMin * 60];
     LONG_BREAK_INTERVAL = interval;
+    saveStateToStorage();
 
     resetTimer(); // aplica la nova durada al mode actual
     closeSettings();
 }
 
 settingsBtn.addEventListener('click', openSettings);
+
+// --- Mode Nit ---
+nightModeBtn.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    nightModeBtn.classList.toggle('active');
+    saveStateToStorage();
+});
 saveSettingsBtn.addEventListener('click', saveSettings);
 cancelSettingsBtn.addEventListener('click', closeSettings);
 
@@ -137,5 +184,7 @@ optionButtons.forEach((btn, idx) => {
 });
 
 // --- Estat inicial ---
+loadStateFromStorage();
+remainingSeconds = DURATIONS[currentModeIndex];
 updateDisplay();
 optionButtons[currentModeIndex].classList.add('active');

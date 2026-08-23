@@ -13,7 +13,6 @@
     height: 40px;
     width: 40px;
     border-radius: 16px;
-    border-style: solid;
     background-color: rgba(239, 222, 101, 0.75);
     cursor: pointer;
 }
@@ -90,13 +89,6 @@
     border: none;
 }
 
-#options button:active {
-    background-color: rgba(255, 129, 221, 0.779);
-    padding: 5px;
-    border: none;
-    border-radius: 17px;
-}
-
 #options button.active {
     background-color: rgba(255, 129, 221, 0.779);
     padding: 5px;
@@ -113,7 +105,7 @@ body {
     background-color: rgb(255, 214, 244);
 }
 
-/* Settings */
+/* --- Settings --- */
 
 #settingsModal {
     position: fixed;
@@ -187,4 +179,83 @@ body {
     cursor: pointer;
     padding: 8px 14px;
     font-family: Geneva, Verdana, sans-serif;
+}
+
+/* --- Mode Nit --- */
+
+body.dark-mode {
+    background-color: rgb(24, 24, 24);
+}
+
+body.dark-mode #menu,
+body.dark-mode #app {
+    background-color: rgba(55, 55, 55, 0.9);
+}
+
+body.dark-mode #app {
+    box-shadow: 3px 3px 26px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode #app button,
+body.dark-mode #menu button {
+    background-color: rgba(110, 110, 110, 0.85);
+    color: rgb(240, 240, 240);
+}
+
+body.dark-mode #clock {
+    background-color: rgba(40, 40, 40, 0.85);
+}
+
+body.dark-mode #time {
+    color: rgb(230, 230, 230);
+}
+
+body.dark-mode #options {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode #clock #startPauseBtn {
+    background-color: rgba(140, 140, 140, 0.95);
+    color: rgb(255, 255, 255);
+}
+
+body.dark-mode #clock #resetBtn {
+    background-color: rgba(80, 80, 80, 0.9);
+    color: rgb(225, 225, 225);
+}
+
+body.dark-mode #settingsContent {
+    background-color: rgba(55, 55, 55, 0.95);
+}
+
+body.dark-mode #settingsContent input {
+    background-color: rgba(110, 110, 110, 0.85);
+    color: rgb(240, 240, 240);
+}
+
+body.dark-mode #settingsButtons button {
+    background-color: rgba(110, 110, 110, 0.85);
+    color: rgb(240, 240, 240);
+}
+
+#nightModeBtn.active {
+    background-color: rgba(90, 90, 90, 0.9);
+}
+
+body.dark-mode #topbar {
+    color: rgb(230, 230, 230);
+    text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode img {
+    filter: grayscale(1);
+}
+
+body.dark-mode #options button.active {
+    background-color: rgba(110, 110, 110, 0.85);
+}
+
+body.dark-mode #options button {
+    background-color: transparent;
+    color: rgb(210, 210, 210);
 }
