@@ -67,14 +67,12 @@
             <p>Pomodors completats: <strong id="statsPomodoros">0</strong></p>
             <p>Temps total d'estudi: <strong id="statsTotalTime">0h 0m</strong></p>
             <div id="statsChart"></div>
-
             <h2>Objectius</h2>
             <div id="goalInputRow">
                 <input type="text" id="goalInput" placeholder="Nou objectiu..." maxlength="60" />
                 <button id="addGoalBtn">+</button>
             </div>
             <ul id="goalsList"></ul>
-
             <div class="modalButtons">
                 <button id="closeStats">Tancar</button>
             </div>
@@ -84,7 +82,20 @@
     <section id="awardsModal" class="modalOverlay ocult">
         <div class="modalContent" id="awardsContent">
             <h2>Premis</h2>
-            <div id="awardsGrid"></div>
+            <div id="awardsTabs">
+                <button id="tabRewardsBtn" class="tabBtn active">Els meus premis</button>
+                <button id="tabCreateBtn" class="tabBtn">+ Crear premi</button>
+            </div>
+            <div id="rewardsPanel" class="tabPanel">
+                <ul id="rewardsList"></ul>
+            </div>
+            <div id="createRewardPanel" class="tabPanel ocult">
+                <div id="rewardInputRow">
+                    <input type="text" id="rewardNameInput" placeholder="Ex: Funko Pop" maxlength="40" />
+                    <input type="number" id="rewardTargetInput" placeholder="Pomodors" min="1" />
+                    <button id="addRewardBtn">+</button>
+                </div>
+            </div>
             <div class="modalButtons">
                 <button id="closeAwards">Tancar</button>
             </div>

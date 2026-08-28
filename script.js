@@ -32,12 +32,19 @@ const statsChart = document.getElementById('statsChart');
 const goalInput = document.getElementById('goalInput');
 const addGoalBtn = document.getElementById('addGoalBtn');
 const goalsList = document.getElementById('goalsList');
+const rewardNameInput = document.getElementById('rewardNameInput');
+const rewardTargetInput = document.getElementById('rewardTargetInput');
+const addRewardBtn = document.getElementById('addRewardBtn');
 const closeStatsBtn = document.getElementById('closeStats');
 
 // Modal de Premis
 const awardsModal = document.getElementById('awardsModal');
-const awardsGrid = document.getElementById('awardsGrid');
+const rewardsList = document.getElementById('rewardsList');
 const closeAwardsBtn = document.getElementById('closeAwards');
+const tabRewardsBtn = document.getElementById('tabRewardsBtn');
+const tabCreateBtn = document.getElementById('tabCreateBtn');
+const rewardsPanel = document.getElementById('rewardsPanel');
+const createRewardPanel = document.getElementById('createRewardPanel');
 
 // --- Durada de cada mode, en segons (configurables des de Settings) ---
 let DURATIONS = [25 * 60, 5 * 60, 15 * 60];
@@ -54,15 +61,7 @@ let pomodorosCompleted = 0; // cada 4 pomodoros toca Long Break
 let totalMinutesStudied = 0;
 let dailyMinutes = {}; // { 'AAAA-MM-DD': minuts }
 let goals = []; // [{ id, text, done }]
-
-// --- Premis per assoliments (basats en pomodors completats) ---
-const MILESTONE_AWARDS = [
-    { id: 'first', icon: '🍅', threshold: 1, label: '1r Pomodoro' },
-    { id: 'ten', icon: '🥉', threshold: 10, label: '10 Pomodors' },
-    { id: 'twentyfive', icon: '🥈', threshold: 25, label: '25 Pomodors' },
-    { id: 'fifty', icon: '🥇', threshold: 50, label: '50 Pomodors' },
-    { id: 'hundred', icon: '🏆', threshold: 100, label: '100 Pomodors' },
-];
+let customRewards = []; // [{ id, name, target, notified }] -- premis creats per l'usuari
 
 // --- LocalStorage: recordar preferències entre sessions ---
 const STORAGE_KEY = 'pomodoroSettings';
@@ -76,6 +75,7 @@ function saveStateToStorage() {
         totalMinutesStudied,
         dailyMinutes,
         goals,
+        customRewards,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -103,6 +103,9 @@ function loadStateFromStorage() {
         }
         if (Array.isArray(state.goals)) {
             goals = state.goals;
+        }
+        if (Array.isArray(state.customRewards)) {
+            customRewards = state.customRewards;
         }
         if (state.darkMode) {
             document.body.classList.add('dark-mode');
@@ -187,6 +190,7 @@ function handleSessionEnd() {
         dailyMinutes[today] = (dailyMinutes[today] || 0) + minutesEarned;
 
         saveStateToStorage();
+        checkRewardsUnlocked();
         const nextMode = (pomodorosCompleted % LONG_BREAK_INTERVAL === 0) ? 2 : 1;
         switchMode(nextMode);
     } else {
@@ -362,54 +366,124 @@ goalInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addGoal();
 });
 
-// --- Premis ---
-function renderAwards() {
-    awardsGrid.innerHTML = '';
+// --- Premis personalitzats ---
+function addReward() {
+    const name = rewardNameInput.value.trim();
+    const target = parseInt(rewardTargetInput.value);
+    if (!name || !target || target < 1) return;
 
-    MILESTONE_AWARDS.forEach((award) => {
-        const unlocked = pomodorosCompleted >= award.threshold;
-        const badge = document.createElement('div');
-        badge.className = 'awardBadge' + (unlocked ? ' unlocked' : '');
+    customRewards.push({ id: Date.now().toString(), name, target, notified: false });
+    rewardNameInput.value = '';
+    rewardTargetInput.value = '';
+    saveStateToStorage();
+    renderRewards();
+    showRewardsTab();
+}
 
-        const icon = document.createElement('span');
-        icon.className = 'awardIcon';
-        icon.textContent = award.icon;
+function deleteReward(id) {
+    customRewards = customRewards.filter((r) => r.id !== id);
+    saveStateToStorage();
+    renderRewards();
+}
 
-        const label = document.createElement('span');
-        label.textContent = award.label;
-
-        badge.appendChild(icon);
-        badge.appendChild(label);
-        awardsGrid.appendChild(badge);
+// Comprova si algun premi acaba d'assolir-se i llança la notificació
+function checkRewardsUnlocked() {
+    let changed = false;
+    customRewards.forEach((reward) => {
+        if (!reward.notified && pomodorosCompleted >= reward.target) {
+            reward.notified = true;
+            changed = true;
+            playBeep();
+            notifySessionEnd(`🎉 Has aconseguit el premi: ${reward.name}!`);
+        }
     });
+    if (changed) saveStateToStorage();
+}
 
-    goals
-        .filter((g) => g.done)
-        .forEach((goal) => {
-            const badge = document.createElement('div');
-            badge.className = 'awardBadge unlocked';
+function renderRewards() {
+    rewardsList.innerHTML = '';
 
-            const icon = document.createElement('span');
-            icon.className = 'awardIcon';
-            icon.textContent = '🎯';
+    if (customRewards.length === 0) {
+        const empty = document.createElement('p');
+        empty.textContent = 'Encara no has creat cap premi. Prem "+ Crear premi".';
+        rewardsList.appendChild(empty);
+        return;
+    }
 
-            const label = document.createElement('span');
-            label.textContent = goal.text;
+    customRewards.forEach((reward) => {
+        const achieved = pomodorosCompleted >= reward.target;
+        const percent = Math.min(100, Math.round((pomodorosCompleted / reward.target) * 100));
 
-            badge.appendChild(icon);
-            badge.appendChild(label);
-            awardsGrid.appendChild(badge);
-        });
+        const li = document.createElement('li');
+        li.className = 'rewardItem' + (achieved ? ' achieved' : '');
+
+        const header = document.createElement('div');
+        header.className = 'rewardItem-header';
+
+        const name = document.createElement('span');
+        name.className = 'rewardItem-name';
+        name.textContent = (achieved ? '🎁 ' : '') + reward.name;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'deleteReward';
+        deleteBtn.innerHTML = '&#10005;';
+        deleteBtn.addEventListener('click', () => deleteReward(reward.id));
+
+        header.appendChild(name);
+        header.appendChild(deleteBtn);
+
+        const track = document.createElement('div');
+        track.className = 'rewardProgressTrack';
+        const fill = document.createElement('div');
+        fill.className = 'rewardProgressFill';
+        fill.style.width = `${percent}%`;
+        track.appendChild(fill);
+
+        const label = document.createElement('div');
+        label.className = 'rewardProgressLabel';
+        label.textContent = `${Math.min(pomodorosCompleted, reward.target)}/${reward.target} pomodors · ${percent}%`;
+
+        li.appendChild(header);
+        li.appendChild(track);
+        li.appendChild(label);
+        rewardsList.appendChild(li);
+    });
+}
+
+function showRewardsTab() {
+    tabRewardsBtn.classList.add('active');
+    tabCreateBtn.classList.remove('active');
+    rewardsPanel.classList.remove('ocult');
+    createRewardPanel.classList.add('ocult');
+}
+
+function showCreateTab() {
+    tabCreateBtn.classList.add('active');
+    tabRewardsBtn.classList.remove('active');
+    createRewardPanel.classList.remove('ocult');
+    rewardsPanel.classList.add('ocult');
 }
 
 function openAwards() {
-    renderAwards();
+    renderRewards();
+    showRewardsTab();
     awardsModal.classList.remove('ocult');
 }
 
 function closeAwards() {
     awardsModal.classList.add('ocult');
 }
+
+tabRewardsBtn.addEventListener('click', showRewardsTab);
+tabCreateBtn.addEventListener('click', showCreateTab);
+
+addRewardBtn.addEventListener('click', addReward);
+rewardNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addReward();
+});
+rewardTargetInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addReward();
+});
 
 awardsBtn.addEventListener('click', openAwards);
 closeAwardsBtn.addEventListener('click', closeAwards);

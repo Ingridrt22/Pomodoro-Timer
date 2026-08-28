@@ -13,6 +13,7 @@
     height: 40px;
     width: 40px;
     border-radius: 16px;
+    border-style: solid;
     background-color: rgba(239, 222, 101, 0.75);
     cursor: pointer;
 }
@@ -33,6 +34,8 @@
 }
 
 #app button {
+    display: flexbox;
+    gap: 10px;
     border-radius: 10px;
     background-color: rgba(239, 222, 101, 0.75);
     cursor: pointer;
@@ -69,9 +72,13 @@
     width: 36px;
     border-radius: 50%;
     border-style: none;
-    background-color: rgb(251, 225, 246);
-    color: rgb(245, 112, 209);
     font-size: 15px;
+    background-color: rgba(255, 209, 240, 0.9);
+    color: rgb(199, 74, 150);
+}
+
+.ocult {
+    display: none;
 }
 
 #options {
@@ -87,6 +94,13 @@
 #options button {
     background-color: transparent;
     border: none;
+}
+
+#options button:active {
+    background-color: rgba(255, 129, 221, 0.779);
+    padding: 5px;
+    border: none;
+    border-radius: 17px;
 }
 
 #options button.active {
@@ -291,43 +305,132 @@ body {
     padding: 0;
 }
 
-/* --- Premis --- */
+/* --- Premis: pestanyes --- */
 
-#awardsGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+#awardsTabs {
+    display: flex;
+    gap: 6px;
 }
 
-.awardBadge {
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    padding: 10px 6px;
-    text-align: center;
-    font-size: 10px;
+.tabBtn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: inherit;
+    text-shadow: inherit;
+    cursor: pointer;
+    padding: 8px 4px;
+    font-family: Geneva, Verdana, sans-serif;
+    font-size: 12px;
+}
+
+.tabBtn.active {
+    background-color: rgba(255, 129, 221, 0.779);
+}
+
+/* --- Crear premi --- */
+
+#rewardInputRow {
+    display: flex;
+    gap: 6px;
+}
+
+#rewardInputRow input[type="text"] {
+    flex: 2;
+    width: auto;
+    min-width: 0;
+}
+
+#rewardInputRow input[type="number"] {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+}
+
+#rewardInputRow button {
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(239, 222, 101, 0.75);
+    color: rgb(61, 60, 60);
+    cursor: pointer;
+    width: 32px;
+    font-weight: 700;
+}
+
+/* --- Premis: llista amb barra de progrés --- */
+
+#rewardsList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
+    gap: 12px;
+}
+
+#rewardsList p {
+    text-align: center;
+    font-size: 12px;
+    text-shadow: none;
+}
+
+.rewardItem {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.rewardItem-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
 }
 
-.awardBadge .awardIcon {
-    font-size: 26px;
-    filter: grayscale(1);
-    opacity: 0.4;
+.rewardItem-name {
+    font-weight: 700;
+    word-break: break-word;
 }
 
-.awardBadge.unlocked {
-    background-color: rgba(255, 129, 221, 0.35);
+.rewardItem .deleteReward {
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-shadow: none;
+    cursor: pointer;
+    font-size: 12px;
+    flex-shrink: 0;
 }
 
-.awardBadge.unlocked .awardIcon {
-    filter: none;
-    opacity: 1;
+.rewardProgressTrack {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    height: 14px;
+    overflow: hidden;
 }
 
-/* --- Mode Nit --- */
+.rewardProgressFill {
+    height: 100%;
+    width: 0%;
+    background-color: rgba(255, 129, 221, 0.95);
+    transition: width 0.3s ease;
+}
 
+.rewardItem.achieved .rewardProgressFill {
+    background-color: rgba(139, 231, 149, 0.95);
+}
+
+.rewardProgressLabel {
+    font-size: 11px;
+    margin-top: 4px;
+    text-align: right;
+    text-shadow: none;
+}
+
+/* --- Mode Nit (escala de grisos) --- */
 body.dark-mode {
     background-color: rgb(24, 24, 24);
 }
@@ -369,18 +472,48 @@ body.dark-mode #clock #resetBtn {
     color: rgb(225, 225, 225);
 }
 
-body.dark-mode #settingsContent {
+body.dark-mode .modalContent {
     background-color: rgba(55, 55, 55, 0.95);
 }
 
-body.dark-mode #settingsContent input {
+body.dark-mode .modalContent input {
     background-color: rgba(110, 110, 110, 0.85);
     color: rgb(240, 240, 240);
 }
 
-body.dark-mode #settingsButtons button {
+body.dark-mode .modalButtons button,
+body.dark-mode #goalInputRow button,
+body.dark-mode #rewardInputRow button {
     background-color: rgba(110, 110, 110, 0.85);
     color: rgb(240, 240, 240);
+}
+
+body.dark-mode .tabBtn {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: rgb(230, 230, 230);
+}
+
+body.dark-mode .tabBtn.active {
+    background-color: rgba(190, 190, 190, 0.5);
+}
+
+body.dark-mode #statsChart,
+body.dark-mode .goalItem,
+body.dark-mode .rewardItem,
+body.dark-mode .rewardProgressTrack {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .chartBar {
+    background-color: rgba(190, 190, 190, 0.9);
+}
+
+body.dark-mode .rewardProgressFill {
+    background-color: rgba(190, 190, 190, 0.9);
+}
+
+body.dark-mode .rewardItem.achieved .rewardProgressFill {
+    background-color: rgba(139, 231, 149, 0.9);
 }
 
 #nightModeBtn.active {
@@ -398,6 +531,7 @@ body.dark-mode img {
 
 body.dark-mode #options button.active {
     background-color: rgba(110, 110, 110, 0.85);
+    color: rgb(255, 255, 255);
 }
 
 body.dark-mode #options button {
