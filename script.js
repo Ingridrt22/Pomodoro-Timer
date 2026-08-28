@@ -11,7 +11,9 @@ const optionButtons = document.querySelectorAll('#options button');
 // Botons de #controls: night-mode, chart, settings (en aquest ordre)
 const controlButtons = document.querySelectorAll('#controls button');
 const nightModeBtn = document.getElementById('nightModeBtn');
+const statsBtn = document.getElementById('statsBtn');
 const settingsBtn = controlButtons[2];
+const awardsBtn = document.getElementById('awardsBtn');
 
 // Modal de Settings
 const settingsModal = document.getElementById('settingsModal');
@@ -21,6 +23,21 @@ const longBreakInput = document.getElementById('longBreakInput');
 const intervalInput = document.getElementById('intervalInput');
 const saveSettingsBtn = document.getElementById('saveSettings');
 const cancelSettingsBtn = document.getElementById('cancelSettings');
+
+// Modal d'Estadístiques (gràfic + objectius)
+const statsModal = document.getElementById('statsModal');
+const statsPomodorosEl = document.getElementById('statsPomodoros');
+const statsTotalTimeEl = document.getElementById('statsTotalTime');
+const statsChart = document.getElementById('statsChart');
+const goalInput = document.getElementById('goalInput');
+const addGoalBtn = document.getElementById('addGoalBtn');
+const goalsList = document.getElementById('goalsList');
+const closeStatsBtn = document.getElementById('closeStats');
+
+// Modal de Premis
+const awardsModal = document.getElementById('awardsModal');
+const awardsGrid = document.getElementById('awardsGrid');
+const closeAwardsBtn = document.getElementById('closeAwards');
 
 // --- Durada de cada mode, en segons (configurables des de Settings) ---
 let DURATIONS = [25 * 60, 5 * 60, 15 * 60];
@@ -33,6 +50,20 @@ let timerInterval = null;
 let isRunning = false;
 let pomodorosCompleted = 0; // cada 4 pomodoros toca Long Break
 
+// --- Estadístiques d'estudi ---
+let totalMinutesStudied = 0;
+let dailyMinutes = {}; // { 'AAAA-MM-DD': minuts }
+let goals = []; // [{ id, text, done }]
+
+// --- Premis per assoliments (basats en pomodors completats) ---
+const MILESTONE_AWARDS = [
+    { id: 'first', icon: '🍅', threshold: 1, label: '1r Pomodoro' },
+    { id: 'ten', icon: '🥉', threshold: 10, label: '10 Pomodors' },
+    { id: 'twentyfive', icon: '🥈', threshold: 25, label: '25 Pomodors' },
+    { id: 'fifty', icon: '🥇', threshold: 50, label: '50 Pomodors' },
+    { id: 'hundred', icon: '🏆', threshold: 100, label: '100 Pomodors' },
+];
+
 // --- LocalStorage: recordar preferències entre sessions ---
 const STORAGE_KEY = 'pomodoroSettings';
 
@@ -42,6 +73,9 @@ function saveStateToStorage() {
         LONG_BREAK_INTERVAL,
         pomodorosCompleted,
         darkMode: document.body.classList.contains('dark-mode'),
+        totalMinutesStudied,
+        dailyMinutes,
+        goals,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
@@ -61,12 +95,55 @@ function loadStateFromStorage() {
         if (typeof state.pomodorosCompleted === 'number') {
             pomodorosCompleted = state.pomodorosCompleted;
         }
+        if (typeof state.totalMinutesStudied === 'number') {
+            totalMinutesStudied = state.totalMinutesStudied;
+        }
+        if (state.dailyMinutes && typeof state.dailyMinutes === 'object') {
+            dailyMinutes = state.dailyMinutes;
+        }
+        if (Array.isArray(state.goals)) {
+            goals = state.goals;
+        }
         if (state.darkMode) {
             document.body.classList.add('dark-mode');
             nightModeBtn.classList.add('active');
         }
     } catch (err) {
         console.error('No s\'ha pogut llegir el localStorage:', err);
+    }
+}
+
+// --- So i notificació quan s'acaba una sessió ---
+function playBeep() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 880;
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + 0.6);
+    } catch (err) {
+        console.error('No s\'ha pogut reproduir el so:', err);
+    }
+}
+
+function requestNotificationPermission() {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+}
+
+function notifySessionEnd(message) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Pomodoro Timer', { body: message });
     }
 }
 
@@ -88,6 +165,12 @@ function tick() {
     } else {
         clearInterval(timerInterval);
         isRunning = false;
+        playBeep();
+        notifySessionEnd(
+            currentModeIndex === 0
+                ? 'Pomodoro acabat! Toca un descans.'
+                : 'Descans acabat! Toca tornar a la feina.'
+        );
         handleSessionEnd();
     }
 }
@@ -97,6 +180,12 @@ function handleSessionEnd() {
     if (currentModeIndex === 0) {
         // Acaba de passar un Pomodoro
         pomodorosCompleted++;
+
+        const minutesEarned = DURATIONS[0] / 60;
+        totalMinutesStudied += minutesEarned;
+        const today = new Date().toISOString().slice(0, 10);
+        dailyMinutes[today] = (dailyMinutes[today] || 0) + minutesEarned;
+
         saveStateToStorage();
         const nextMode = (pomodorosCompleted % LONG_BREAK_INTERVAL === 0) ? 2 : 1;
         switchMode(nextMode);
@@ -115,6 +204,7 @@ function toggleStartPause() {
         startPauseBtn.innerHTML = '&#9654;';
     } else {
         // Arrenca o reprèn
+        requestNotificationPermission();
         isRunning = true;
         timerInterval = setInterval(tick, 1000);
         startPauseBtn.innerHTML = '&#9208;';
@@ -165,6 +255,181 @@ function saveSettings() {
 }
 
 settingsBtn.addEventListener('click', openSettings);
+
+// --- Estadístiques: gràfic dels últims 7 dies ---
+function renderChart() {
+    statsChart.innerHTML = '';
+
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push(d.toISOString().slice(0, 10));
+    }
+
+    const values = days.map((day) => dailyMinutes[day] || 0);
+    const maxValue = Math.max(...values, 1);
+
+    days.forEach((day, idx) => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'chartDay';
+
+        const bar = document.createElement('div');
+        bar.className = 'chartBar';
+        bar.style.height = `${(values[idx] / maxValue) * 100}%`;
+        bar.title = `${values[idx]} min`;
+
+        const label = document.createElement('span');
+        label.className = 'chartDayLabel';
+        label.textContent = new Date(day + 'T00:00:00').toLocaleDateString('ca-ES', { weekday: 'short' }).slice(0, 2);
+
+        dayDiv.appendChild(bar);
+        dayDiv.appendChild(label);
+        statsChart.appendChild(dayDiv);
+    });
+}
+
+// --- Estadístiques: objectius ---
+function renderGoals() {
+    goalsList.innerHTML = '';
+
+    goals.forEach((goal) => {
+        const li = document.createElement('li');
+        li.className = 'goalItem' + (goal.done ? ' done' : '');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = goal.done;
+        checkbox.addEventListener('change', () => toggleGoal(goal.id));
+
+        const span = document.createElement('span');
+        span.textContent = goal.text;
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'deleteGoal';
+        deleteBtn.innerHTML = '&#10005;';
+        deleteBtn.addEventListener('click', () => deleteGoal(goal.id));
+
+        li.appendChild(checkbox);
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+        goalsList.appendChild(li);
+    });
+}
+
+function addGoal() {
+    const text = goalInput.value.trim();
+    if (!text) return;
+
+    goals.push({ id: Date.now().toString(), text, done: false });
+    goalInput.value = '';
+    saveStateToStorage();
+    renderGoals();
+}
+
+function toggleGoal(id) {
+    const goal = goals.find((g) => g.id === id);
+    if (!goal) return;
+    goal.done = !goal.done;
+    saveStateToStorage();
+    renderGoals();
+}
+
+function deleteGoal(id) {
+    goals = goals.filter((g) => g.id !== id);
+    saveStateToStorage();
+    renderGoals();
+}
+
+function openStats() {
+    statsPomodorosEl.textContent = pomodorosCompleted;
+    const hours = Math.floor(totalMinutesStudied / 60);
+    const mins = Math.round(totalMinutesStudied % 60);
+    statsTotalTimeEl.textContent = `${hours}h ${mins}m`;
+    renderChart();
+    renderGoals();
+    statsModal.classList.remove('ocult');
+}
+
+function closeStats() {
+    statsModal.classList.add('ocult');
+}
+
+statsBtn.addEventListener('click', openStats);
+closeStatsBtn.addEventListener('click', closeStats);
+addGoalBtn.addEventListener('click', addGoal);
+goalInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addGoal();
+});
+
+// --- Premis ---
+function renderAwards() {
+    awardsGrid.innerHTML = '';
+
+    MILESTONE_AWARDS.forEach((award) => {
+        const unlocked = pomodorosCompleted >= award.threshold;
+        const badge = document.createElement('div');
+        badge.className = 'awardBadge' + (unlocked ? ' unlocked' : '');
+
+        const icon = document.createElement('span');
+        icon.className = 'awardIcon';
+        icon.textContent = award.icon;
+
+        const label = document.createElement('span');
+        label.textContent = award.label;
+
+        badge.appendChild(icon);
+        badge.appendChild(label);
+        awardsGrid.appendChild(badge);
+    });
+
+    goals
+        .filter((g) => g.done)
+        .forEach((goal) => {
+            const badge = document.createElement('div');
+            badge.className = 'awardBadge unlocked';
+
+            const icon = document.createElement('span');
+            icon.className = 'awardIcon';
+            icon.textContent = '🎯';
+
+            const label = document.createElement('span');
+            label.textContent = goal.text;
+
+            badge.appendChild(icon);
+            badge.appendChild(label);
+            awardsGrid.appendChild(badge);
+        });
+}
+
+function openAwards() {
+    renderAwards();
+    awardsModal.classList.remove('ocult');
+}
+
+function closeAwards() {
+    awardsModal.classList.add('ocult');
+}
+
+awardsBtn.addEventListener('click', openAwards);
+closeAwardsBtn.addEventListener('click', closeAwards);
+
+// Tancar qualsevol modal clicant fora del contingut, o amb Escape
+const allModals = [settingsModal, statsModal, awardsModal];
+
+allModals.forEach((modal) => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('ocult');
+        }
+    });
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        allModals.forEach((modal) => modal.classList.add('ocult'));
+    }
+});
 
 // --- Mode Nit ---
 nightModeBtn.addEventListener('click', () => {

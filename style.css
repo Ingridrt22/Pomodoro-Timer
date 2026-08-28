@@ -105,9 +105,9 @@ body {
     background-color: rgb(255, 214, 244);
 }
 
-/* --- Settings --- */
+/* --- Modals (Settings, Estadístiques, Premis) --- */
 
-#settingsModal {
+.modalOverlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -120,11 +120,11 @@ body {
     z-index: 100;
 }
 
-#settingsModal.ocult {
+.modalOverlay.ocult {
     display: none;
 }
 
-#settingsContent {
+.modalContent {
     background-color: rgba(223, 142, 201, 0.9);
     color: rgb(239, 222, 101);
     text-shadow: 2px 2px 3px rgb(61, 60, 60);
@@ -136,14 +136,22 @@ body {
     flex-direction: column;
     gap: 14px;
     width: 240px;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
-#settingsContent h2 {
+#statsContent,
+#awardsContent {
+    width: 280px;
+}
+
+.modalContent h2 {
     margin: 0 0 5px 0;
     text-align: center;
+    font-size: 18px;
 }
 
-#settingsContent label {
+.modalContent label {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -151,8 +159,8 @@ body {
     font-size: 14px;
 }
 
-#settingsContent input {
-    width: 55px;
+.modalContent input[type="number"],
+.modalContent input[type="text"] {
     border: none;
     border-radius: 8px;
     padding: 4px 6px;
@@ -164,13 +172,17 @@ body {
     font-weight: 700;
 }
 
-#settingsButtons {
+.modalContent input[type="number"] {
+    width: 55px;
+}
+
+.modalButtons {
     display: flex;
     justify-content: space-between;
     margin-top: 6px;
 }
 
-#settingsButtons button {
+.modalButtons button {
     border: none;
     border-radius: 10px;
     background-color: rgba(239, 222, 101, 0.75);
@@ -179,6 +191,139 @@ body {
     cursor: pointer;
     padding: 8px 14px;
     font-family: Geneva, Verdana, sans-serif;
+}
+
+/* --- Estadístiques: gràfic --- */
+
+#statsChart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 8px;
+}
+
+.chartDay {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    gap: 4px;
+}
+
+.chartBar {
+    width: 100%;
+    background-color: rgba(255, 129, 221, 0.95);
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+}
+
+.chartDayLabel {
+    font-size: 9px;
+    text-shadow: none;
+    text-transform: capitalize;
+}
+
+/* --- Estadístiques: objectius --- */
+
+#goalInputRow {
+    display: flex;
+    gap: 6px;
+}
+
+#goalInputRow input {
+    flex: 1;
+    width: auto;
+}
+
+#goalInputRow button {
+    border: none;
+    border-radius: 8px;
+    background-color: rgba(239, 222, 101, 0.75);
+    color: rgb(61, 60, 60);
+    cursor: pointer;
+    width: 32px;
+    font-weight: 700;
+}
+
+#goalsList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.goalItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+.goalItem span {
+    flex: 1;
+    word-break: break-word;
+}
+
+.goalItem.done span {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.goalItem .deleteGoal {
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-shadow: none;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+}
+
+/* --- Premis --- */
+
+#awardsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.awardBadge {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.awardBadge .awardIcon {
+    font-size: 26px;
+    filter: grayscale(1);
+    opacity: 0.4;
+}
+
+.awardBadge.unlocked {
+    background-color: rgba(255, 129, 221, 0.35);
+}
+
+.awardBadge.unlocked .awardIcon {
+    filter: none;
+    opacity: 1;
 }
 
 /* --- Mode Nit --- */

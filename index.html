@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Pomodoro Timer </title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🍅</text></svg>">
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,7 +13,7 @@
             <button onclick="window.open('https://open.spotify.com/intl-es', '_blank');"> <img src="img/spotify.png" height="25" /> </button>
             <button onclick="window.open('https://tasks.google.com/u/1/tasks/', '_blank');"> <img src="img/todolist.png" height="25" /> </button>
             <button onclick="window.open('https://calendar.google.com/calendar/u/1/r', '_blank');"> <img src="img/calendar.png" height="25" /> </button>
-            <button> <img src="img/award.png" height="25" /> </button>
+            <button id="awardsBtn"> <img src="img/award.png" height="25" /> </button>
         </section>
     </header>
     <section id="app">
@@ -20,8 +21,8 @@
             <h1> Pomodoro Timer </h1>
             <div id="controls">
                 <button id="nightModeBtn"> <img src="img/night-mode.png" height="25" /> </button>
-                <button> <img src="img/chart.png" height="25" /> </button>
-                <button> <img src="img/settings.png" height="25" /> </button> 
+                <button id="statsBtn"> <img src="img/chart.png" height="25" /> </button>
+                <button> <img src="img/settings.png" height="25" /> </button> <!-- a la dreta i mes avall-->
             </div>
         </div>
         <section id="clock">
@@ -38,8 +39,8 @@
         </section>
     </section>
 
-    <section id="settingsModal" class="ocult">
-        <div id="settingsContent">
+    <section id="settingsModal" class="modalOverlay ocult">
+        <div class="modalContent" id="settingsContent">
             <h2>Settings</h2>
             <label for="pomodoroInput">Pomodoro (min)
                 <input type="number" id="pomodoroInput" min="1" value="25" />
@@ -53,13 +54,43 @@
             <label for="intervalInput">Long Break every pomodoros
                 <input type="number" id="intervalInput" min="1" value="4" />
             </label>
-            <div id="settingsButtons">
+            <div class="modalButtons">
                 <button id="cancelSettings">Cancel</button>
                 <button id="saveSettings">Save</button>
             </div>
         </div>
     </section>
 
-    <script src="script.js"> </script>
+    <section id="statsModal" class="modalOverlay ocult">
+        <div class="modalContent" id="statsContent">
+            <h2>Estadístiques</h2>
+            <p>Pomodors completats: <strong id="statsPomodoros">0</strong></p>
+            <p>Temps total d'estudi: <strong id="statsTotalTime">0h 0m</strong></p>
+            <div id="statsChart"></div>
+
+            <h2>Objectius</h2>
+            <div id="goalInputRow">
+                <input type="text" id="goalInput" placeholder="Nou objectiu..." maxlength="60" />
+                <button id="addGoalBtn">+</button>
+            </div>
+            <ul id="goalsList"></ul>
+
+            <div class="modalButtons">
+                <button id="closeStats">Tancar</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="awardsModal" class="modalOverlay ocult">
+        <div class="modalContent" id="awardsContent">
+            <h2>Premis</h2>
+            <div id="awardsGrid"></div>
+            <div class="modalButtons">
+                <button id="closeAwards">Tancar</button>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
 </body>
 </html>
