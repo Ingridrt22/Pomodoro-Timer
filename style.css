@@ -6,7 +6,8 @@
     justify-content: center;
     align-items: center;
     gap: 7px;
-    margin-bottom: 45px;
+    max-width: 455px;
+    margin: 0 auto 45px auto;
 }
 
 #menu button {
@@ -31,6 +32,8 @@
     padding: 0px 10px 10px 10px;
     border-radius: 20px;
     box-shadow: 3px 3px 26px palevioletred;
+    max-width: 430px;
+    margin: 0 auto;
 }
 
 #app button {
